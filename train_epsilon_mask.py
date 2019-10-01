@@ -163,7 +163,7 @@ def train_epsilon(model):
     x = x.cuda()
     x_orig = x.clone()
 
-    x_comp = glow.postprocess(x_orig)
+    x_comp = glow.postprocess(x_orig[0])
     x_comp = x_comp.data.cpu().detach()
     unloader = torchvision.transforms.ToPILImage()
     x_comp = unloader(x_comp)
