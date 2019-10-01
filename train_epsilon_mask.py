@@ -33,7 +33,7 @@ parser.add_argument('-device',type=str,help='whether to use',default="cuda")
 args = parser.parse_args()
 
 
-save_path   = "./results/trained_models/%s/glow"%args.dataset
+save_path   = "/home/data1/meng/ip/%s/glow"%args.dataset
 training_folder = "./data/%s_preprocessed/train"%args.dataset
 # setting up configs as json
 config_path = save_path+"/configs.json"
