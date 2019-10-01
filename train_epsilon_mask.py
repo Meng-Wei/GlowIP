@@ -207,10 +207,10 @@ def train_epsilon(model):
         Loss.backward()
 
         optimizer.step()
-        print("iteration {} - loss {0.5f} - b_norm {0.5f} - logpx {0.5f}".format(i + 1,
+        print(i + 1,
               Loss.cpu().detach().data,
               loss_1.cpu().detach().data,
-              loss_2.cpu().detach().data)
+              loss_2
               )
 
         Losses.append(Loss.item())
