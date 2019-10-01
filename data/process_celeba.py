@@ -6,7 +6,8 @@ from skimage.io import imsave
 from tqdm import tqdm
 import os
 
-files = glob("./celeba/celeba-tfr/train/*.tfrecords")
+# files = glob("./celeba/celeba-tfr/train/*.tfrecords")
+files = glob("/home/data1/meng/glow-celeba/celeba-tfr/train/*.tfrecords")
 save_train_dir = "./celeba_preprocessed/train/train"
 os.makedirs(save_train_dir)
 i = 0
@@ -30,7 +31,7 @@ for file in tqdm(files, desc="processing training files"):
         i = i+1
 
 
-files = glob("./celeba/celeba-tfr/validation/*.tfrecords")
+files = glob("/home/data1/meng/glow-celeba/celeba-tfr/validation/*.tfrecords")
 save_test_dir = "./celeba_preprocessed/validation/validation"
 os.makedirs(save_test_dir)
 i = 0
