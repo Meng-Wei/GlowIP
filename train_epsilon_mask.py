@@ -166,14 +166,14 @@ def train_epsilon(model):
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x_orig)
     logpx = -(logpz + logdet)
-    print("undestroyed logpx", logpx.data)
+    print("undestroyed logpx", logpx)
 
     x = destroy(x, 16, 32)
     x = x.cuda()
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x)
     logpx = -(logpz + logdet)
-    print("untrained logpx", logpx.data)
+    print("untrained logpx", logpx)
 
     model.train()
     iters = 300
@@ -207,7 +207,7 @@ def train_epsilon(model):
         Loss.backward()
 
         optimizer.step()
-        print("iteration {i} - loss {0.5f} - b_norm {0.5f} - logpx {0.5f}".format(i + 1,
+        print("iteration {} - loss {0.5f} - b_norm {0.5f} - logpx {0.5f}".format(i + 1,
               Loss.cpu().detach().data,
               loss_1.cpu().detach().data,
               loss_2.data)
@@ -219,7 +219,7 @@ def train_epsilon(model):
 
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x.clone(), epsilon=True)
     logpx = -(logpz + logdet)
-    print("trained logpx", logpx.data)
+    print("trained logpx", logpx)
 
     epsilon_trained = model.epsilon
     mask_1, mask_2, mask_3 = epsilon_trained[:, 0].permute(1, 2, 0), \
