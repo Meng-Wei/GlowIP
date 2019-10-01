@@ -180,7 +180,7 @@ def train_epsilon(model):
     alpha_ = 10
     lambda_ = 1
     Losses = []
-    lr = 1e-3
+    lr = args.lr
 
 
     optimizer = optim.SGD([
