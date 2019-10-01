@@ -166,14 +166,14 @@ def train_epsilon(model):
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x_orig)
     logpx = -(logpz + logdet)
-    print("undestroyed logpx", logpx)
+    print("undestroyed logpx", logpx.data)
 
     x = destroy(x, 16, 32)
     x = x.cuda()
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x)
     logpx = -(logpz + logdet)
-    print("untrained logpx", logpx)
+    print("untrained logpx", logpx.data)
 
     model.train()
     iters = 300
@@ -207,10 +207,11 @@ def train_epsilon(model):
         Loss.backward()
 
         optimizer.step()
-        print(i + 1,
-              Loss.cpu().detach(),
-              loss_1.cpu().detach(),
-              loss_2)
+        print("iteration {i} - loss {0.5f} - b_norm {0.5f} - logpx {0.5f}".format(i + 1,
+              Loss.cpu().detach().data,
+              loss_1.cpu().detach().data,
+              loss_2.data)
+              )
 
         Losses.append(Loss.item())
 
@@ -218,24 +219,25 @@ def train_epsilon(model):
 
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x.clone(), epsilon=True)
     logpx = -(logpz + logdet)
-    print("trained logpx", logpx)
+    print("trained logpx", logpx.data)
 
     epsilon_trained = model.epsilon
     mask_1, mask_2, mask_3 = epsilon_trained[:, 0].permute(1, 2, 0), \
                              epsilon_trained[:, 1].permute(1, 2, 0), \
                              epsilon_trained[:, 2].permute(1, 2, 0)
+
     mask_1 = show_mask(mask_1).detach().numpy()
     mask_2 = show_mask(mask_2).detach().numpy()
     mask_3 = show_mask(mask_3).detach().numpy()
 
     mask = np.concatenate((mask_1, mask_2, mask_3), axis=1)
-    cv2.imwrite("./mask_imgs/epsilon.jpg", np.uint8(mask * 255))
+    cv2.imwrite("./mask_imgs/" + str(args.img) + "epsilon.jpg", np.uint8(mask * 255))
 
     MASK = model.mask.clone().cpu().detach()
     MASK = MASK[0, 0]
     MASK = (MASK - MASK.min()) / (MASK.max() - MASK.min() + 1e-5)
     heatmap = cv2.applyColorMap(np.uint8(255 * MASK), cv2.COLORMAP_JET)
-    cv2.imwrite("./mask_imgs/MASK.jpg", heatmap)
+    cv2.imwrite("./mask_imgs/" + str(args.img) + "MASK.jpg", heatmap)
 
     x_trained = x.clone() + tanh(model.epsilon) * model.mask
     x_trained = x_trained.clamp(-0.5, 0.5)
@@ -245,14 +247,14 @@ def train_epsilon(model):
     unloader = torchvision.transforms.ToPILImage()
     x_comp = unloader(x_comp)
     x_comp = np.array(x_comp)
-    cv2.imwrite("./mask_imgs/img_trained.jpg", x_comp)
+    cv2.imwrite("./mask_imgs/" + str(args.img) + "img_trained.jpg", x_comp)
 
     ax = plt.subplot()
     ax.plot(Losses, label="Loss")
     plt.xlabel("train iterations")
     plt.ylabel("Loss")
     plt.title("Losses per iteration")
-    plt.savefig("./mask_imgs/Losses.jpg")
+    plt.savefig("./mask_imgs/" + str(args.img) + "Losses.jpg")
     plt.close()
 
     # return nll, -logdet.mean().item(),-logpz.mean().item(), z_.mean().item(), z_.std().item()
