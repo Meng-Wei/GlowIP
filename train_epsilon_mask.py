@@ -163,6 +163,14 @@ def train_epsilon(model):
     x = x.cuda()
     x_orig = x.clone()
 
+    x_comp = glow.postprocess(x_orig)
+    x_comp = x_comp.data.cpu().detach()
+    unloader = torchvision.transforms.ToPILImage()
+    x_comp = unloader(x_comp)
+    x_comp = np.array(x_comp)
+    cv2.imwrite("./mask_imgs/" + str(args.img) + "origin.jpg", x_comp)
+
+    return
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x_orig)
     logpx = -(logpz + logdet)
