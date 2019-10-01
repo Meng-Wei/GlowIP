@@ -14,44 +14,46 @@ import cv2
 import torchvision
 import datasets as datasets
 
-
-parser = argparse.ArgumentParser(description='train glow network')
-parser.add_argument('-dataset',type=str,help='the dataset to train the model on', default='celeba')
-parser.add_argument('-K',type=int,help='no. of steps of flow',default=48)
-parser.add_argument('-L',type=int,help='no. of time squeezing is performed',default=4)
-parser.add_argument('-coupling',type=str,help='type of coupling layer to use',default='affine')
-parser.add_argument('-last_zeros',type=bool,help='whether to initialize last layer ot NN with zeros',default=True)
-parser.add_argument('-batchsize',type=int,help='batch size for training',default=64)
-parser.add_argument('-size',type=int,help='images will be resized to this dimension',default=64)
-parser.add_argument('-lr',type=float,help='learning rate for training',default=1e-4)
-parser.add_argument('-n_bits_x',type=int,help='requantization of training images',default=5)
-parser.add_argument('-epochs',type=int,help='epochs to train for',default=1000)
-parser.add_argument('-warmup_iter',type=int,help='no. of warmup iterations',default=10000)
-parser.add_argument('-sample_freq',type=int,help='sample after every save_freq',default=50)
-parser.add_argument('-save_freq',type=int,help='save after every save_freq',default=1000)
-parser.add_argument('-device',type=str,help='whether to use',default="cuda")
-args = parser.parse_args()
-
-
-save_path   = "/home/data1/meng/ip/%s/glow"%args.dataset
-training_folder = "./data/%s_preprocessed/train"%args.dataset
-# setting up configs as json
-config_path = save_path+"/configs.json"
-configs     = {"K":args.K,
-               "L":args.L,
-               "coupling":args.coupling,
-               "last_zeros":args.last_zeros,
-               "batchsize":args.batchsize,
-               "size":args.size,
-               "lr": args.lr,
-               "n_bits_x":args.n_bits_x,
-               "warmup_iter":args.warmup_iter}
+if True:
+    parser = argparse.ArgumentParser(description='train glow network')
+    parser.add_argument('-dataset',type=str,help='the dataset to train the model on', default='celeba')
+    parser.add_argument('-K',type=int,help='no. of steps of flow',default=48)
+    parser.add_argument('-L',type=int,help='no. of time squeezing is performed',default=4)
+    parser.add_argument('-coupling',type=str,help='type of coupling layer to use',default='affine')
+    parser.add_argument('-last_zeros',type=bool,help='whether to initialize last layer ot NN with zeros',default=True)
+    parser.add_argument('-batchsize',type=int,help='batch size for training',default=64)
+    parser.add_argument('-size',type=int,help='images will be resized to this dimension',default=64)
+    parser.add_argument('-lr',type=float,help='learning rate for training',default=1e-4)
+    parser.add_argument('-n_bits_x',type=int,help='requantization of training images',default=5)
+    parser.add_argument('-epochs',type=int,help='epochs to train for',default=1000)
+    parser.add_argument('-warmup_iter',type=int,help='no. of warmup iterations',default=10000)
+    parser.add_argument('-sample_freq',type=int,help='sample after every save_freq',default=50)
+    parser.add_argument('-save_freq',type=int,help='save after every save_freq',default=1000)
+    parser.add_argument('-device',type=str,help='whether to use',default="cuda")
+    parser.add_argument('-img', type=int, help='image index', default=0)
+    args = parser.parse_args()
 
 
-print("loading previous model and saved configs to resume training ...")
-with open(config_path, 'r') as f:
-    configs = json.load(f)
+    save_path   = "/home/data1/meng/ip/%s/glow"%args.dataset
+    training_folder = "./data/%s_preprocessed/train"%args.dataset
+    # setting up configs as json
+    config_path = save_path+"/configs.json"
+    configs     = {"K":args.K,
+                "L":args.L,
+                "coupling":args.coupling,
+                "last_zeros":args.last_zeros,
+                "batchsize":args.batchsize,
+                "size":args.size,
+                "lr": args.lr,
+                "n_bits_x":args.n_bits_x,
+                "warmup_iter":args.warmup_iter}
 
+
+    print("loading previous model and saved configs to resume training ...")
+    with open(config_path, 'r') as f:
+        configs = json.load(f)
+
+# Glow Model
 glow = Glow((3,configs["size"],configs["size"]),
             K=configs["K"],L=configs["L"],
             coupling=configs["coupling"],
@@ -83,6 +85,7 @@ def destroy(pic, x, y):
     pic[:, 0, x:x + size, y + size:y + size + 1] = -0.5
     pic[:, 1, x:x + size, y + size:y + size + 1] = -0.5
     pic[:, 2, x:x + size, y + size:y + size + 1] = 0.5
+
     # pic[:, 0, x:x + size, y:y + size] = 0
     # pic[:, 1, x:x + size, y:y + size] = 0
     # pic[:, 2, x:x + size, y:y + size] = 1
@@ -121,6 +124,7 @@ def reduce_bits(x):
     x = torch.floor(x / 2**(8 - nbits))
     x = x / 2**nbits - 0.5
     return x
+
 # setting up dataloader
 print("setting up dataloader for the training data")
 # dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batchsize,
@@ -152,7 +156,7 @@ def update_lr(optimizer, itr, lr_1, lr_2):
 def train_epsilon(model):
     for i, (inputs, targets) in enumerate(test_loader):
         if i == 2:
-            x = inputs[1].unsqueeze(dim=0)
+            x = inputs[args.img].unsqueeze(dim=0)
         elif i > 2:
             break
 
@@ -172,14 +176,14 @@ def train_epsilon(model):
     print("untrained logpx", logpx)
 
     model.train()
-    iters = 100
+    iters = 300
     alpha_ = 10
     lambda_ = 1
     Losses = []
     lr = 1e-5
 
 
-    optimizer = optim.SGD([
+    optimizer = optim.Adam([
         {'params': model.epsilon, 'lr': lr},
         {'params': model.mask, 'lr': 0.15}
     ], lr=0)
