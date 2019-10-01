@@ -180,10 +180,10 @@ def train_epsilon(model):
     alpha_ = 10
     lambda_ = 1
     Losses = []
-    lr = 1e-5
+    lr = 1e-3
 
 
-    optimizer = optim.Adam([
+    optimizer = optim.SGD([
         {'params': model.epsilon, 'lr': lr},
         {'params': model.mask, 'lr': 0.15}
     ], lr=0)
@@ -210,7 +210,7 @@ def train_epsilon(model):
         print("iteration {} - loss {0.5f} - b_norm {0.5f} - logpx {0.5f}".format(i + 1,
               Loss.cpu().detach().data,
               loss_1.cpu().detach().data,
-              loss_2.data)
+              loss_2.cpu().detach().data)
               )
 
         Losses.append(Loss.item())
