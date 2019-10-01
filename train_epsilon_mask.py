@@ -189,7 +189,7 @@ def train_epsilon(model):
     ], lr=0)
 
     for i in range(iters):
-        lr_1 = 5 + i / iters
+        lr_1 = 3 + i / iters
         lr_1 = 10 ** (-1 * lr_1)
         lr_2 = 1.5 + i / iters
         lr_2 = 10 ** (-1 * lr_2)
