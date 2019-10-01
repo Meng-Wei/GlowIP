@@ -23,7 +23,7 @@ if True:
     parser.add_argument('-last_zeros',type=bool,help='whether to initialize last layer ot NN with zeros',default=True)
     parser.add_argument('-batchsize',type=int,help='batch size for training',default=64)
     parser.add_argument('-size',type=int,help='images will be resized to this dimension',default=64)
-    parser.add_argument('-lr',type=float,help='learning rate for training',default=2)
+    parser.add_argument('-lr',type=float,help='learning rate for training',default=1e-4)
     parser.add_argument('-n_bits_x',type=int,help='requantization of training images',default=5)
     parser.add_argument('-epochs',type=int,help='epochs to train for',default=1000)
     parser.add_argument('-warmup_iter',type=int,help='no. of warmup iterations',default=10000)
@@ -163,14 +163,6 @@ def train_epsilon(model):
     x = x.cuda()
     x_orig = x.clone()
 
-    # x_comp = glow.postprocess(x_orig[0])
-    # x_comp = x_comp.data.cpu().detach()
-    # unloader = torchvision.transforms.ToPILImage()
-    # x_comp = unloader(x_comp)
-    # x_comp = np.array(x_comp)
-    # cv2.imwrite("./mask_imgs/" + str(args.img) + "origin.jpg", x_comp)
-
-    # return
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x_orig)
     logpx = -(logpz + logdet)
@@ -188,7 +180,7 @@ def train_epsilon(model):
     alpha_ = 10
     lambda_ = 1
     Losses = []
-    lr = 1e-4
+    lr = args.lr
 
 
     optimizer = optim.SGD([
@@ -197,7 +189,7 @@ def train_epsilon(model):
     ], lr=0)
 
     for i in range(iters):
-        lr_1 = args.lr + i / iters
+        lr_1 = 2 + i / iters
         lr_1 = 10 ** (-1 * lr_1)
         lr_2 = 1.5 + i / iters
         lr_2 = 10 ** (-1 * lr_2)
