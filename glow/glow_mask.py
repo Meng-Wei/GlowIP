@@ -61,6 +61,7 @@ class Glow(nn.Module):
     def forward(self, x, logdet=None, reverse=False, reverse_clone=True, epsilon=False, add=False):
 
         if epsilon and not add:
+            print("reach here")
             self.modify_mask()
             x = x + self.tanh(self.epsilon) * self.mask
             x = x.clamp(-0.5, 0.5)
