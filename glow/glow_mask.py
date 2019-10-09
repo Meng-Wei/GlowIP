@@ -51,24 +51,23 @@ class Glow(nn.Module):
         # at the end
         self.to(device)
 
-        self.epsilon_init = torch.zeros(1, 12, 32, 32)
+        self.epsilon_init = torch.zeros(1, 3, 64, 64)
         self.epsilon = torch.nn.Parameter(self.epsilon_init)
-        self.mask_init = torch.ones(1, 12, 32, 32)
+        self.mask_init = torch.ones(1, 3, 64, 64)
         self.mask = torch.nn.Parameter(self.mask_init)
 
         self.tanh = torch.nn.Tanh()
 
-    def forward(self, x, logdet=None, reverse=False, reverse_clone=True, epsilon=False):
+    def forward(self, x, logdet=None, reverse=False, reverse_clone=True, epsilon=False, add=False):
 
-        # if epsilon:
-        #     self.modify_mask()
-        #     x = x + self.tanh(self.epsilon) * self.mask
-        #     x = x.clamp(-0.5, 0.5)
+        if epsilon and not add:
+            self.modify_mask()
+            x = x + self.tanh(self.epsilon) * self.mask
+            x = x.clamp(-0.5, 0.5)
 
         if not reverse:
             n,c,h,w = x.size()
             Z = []
-            add = True
 
             if logdet is None:
                 logdet = torch.tensor(0.0,requires_grad=False,device=self.device,dtype=torch.float)
@@ -81,8 +80,9 @@ class Glow(nn.Module):
                 elif  module_name == "Split":                
                     if add and epsilon:
                         self.modify_mask()
-                        x = x + self.epsilon * self.mask
+                        x = x + self.epsilon.view(1, 12, 32, 32) * self.mask.view(1, 12, 32, 32)
                         add = False
+                        print(self.epsilon.shape)
                     x, z = self.glow_modules[i](x, reverse=False)
                     Z.append(z)
                 else:
@@ -122,7 +122,6 @@ class Glow(nn.Module):
         #     break
 
         mask = self.mask.data
-        mask = mask.view(1, 3, 64, 64)
         # print(mask.size())
         # # print("untrained!!!!!!!!!!!!!!!1")
         # # for i in range(mask.size(2)):
@@ -140,14 +139,13 @@ class Glow(nn.Module):
         # #     print(mask[0, 0, i, :])
         #
         mask = mask.abs()
-        mask = mask.view(1, 12, 32, 32)
         self.mask.data = mask
         # self.mask = torch.nn.Parameter(mask, requires_grad=True)
         # print(type(self.mask))
 
-    def nll_loss(self, x, logdet=None, epsilon=False):
+    def nll_loss(self, x, logdet=None, epsilon=False, add=False):
         n,c,h,w = x.size()
-        z, logdet, actloss = self.forward(x,logdet=logdet,reverse=False, epsilon=epsilon)
+        z, logdet, actloss = self.forward(x,logdet=logdet,reverse=False, epsilon=epsilon, add=add)
         if not self.init_resizer:
             self.sizes = [t.size() for t in z]
             self.init_resizer = True
@@ -158,7 +156,7 @@ class Glow(nn.Module):
         logpz = -0.5*(logs*2. + ((z_- mean)**2)/np.exp(logs*2.) + float(np.log(2 * np.pi))).sum(-1)
         nll   = -(logdet + logpz).mean()
         nll   = nll / float(np.log(2.)*h*w*c)
-        return nll, -logdet.mean(),-logpz.mean(), z_.mean().item(), z_.std().item()
+        return nll, -logdet.mean(),-logpz.mean(), z_.mean().item(), z_.std().item(), z
 
     def preprocess(self, x, clone=False):
         if clone:
