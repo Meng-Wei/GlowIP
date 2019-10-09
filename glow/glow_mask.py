@@ -79,12 +79,13 @@ class Glow(nn.Module):
                 elif  module_name == "Flow":
                     x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)
                 elif  module_name == "Split":                
-                    if add and epsilon:
-                        print(x.shape)
-                        self.modify_mask()
-                        x = x + self.epsilon * self.mask
-                        add = False
+                    # if add and epsilon:
+                    #     print(x.shape)
+                    #     self.modify_mask()
+                    #     x = x + self.epsilon * self.mask
+                    #     add = False
                     x, z = self.glow_modules[i](x, reverse=False)
+                    print(x.shape, z.shape)
                     Z.append(z)
                 else:
                     raise "Unknown Layer"
