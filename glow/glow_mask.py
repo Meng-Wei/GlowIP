@@ -55,6 +55,7 @@ class Glow(nn.Module):
         self.epsilon = torch.nn.Parameter(self.epsilon_init)
         self.mask_init = torch.ones(1, 3, 64, 64)
         self.mask = torch.nn.Parameter(self.mask_init)
+        self.squeeze = squeeze
 
         self.tanh = torch.nn.Tanh()
 
@@ -81,10 +82,10 @@ class Glow(nn.Module):
                 elif  module_name == "Split":                
                     if add and epsilon:
                         self.modify_mask()
-                        x = x.view(1, 3, 64, 64)
+                        x = self.squeeze(x, reverse=True)
                         x  = x + self.epsilon * self.mask
                         # x = x + self.epsilon.view(1, 12, 32, 32) * self.mask.view(1, 12, 32, 32)
-                        x = x.view(1, 12, 32, 32)
+                        x, _ = self.squeeze(x)
                         add = False
                     x, z = self.glow_modules[i](x, reverse=False)
                     Z.append(z)
