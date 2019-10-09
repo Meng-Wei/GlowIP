@@ -154,15 +154,18 @@ def update_lr(optimizer, itr, lr_1, lr_2):
 
 
 def train_epsilon(model):
-    for i, (inputs, targets) in enumerate(test_loader):
-        if i == 2:
-            x = inputs[0]
-            print(x.shape)
-            x = x.unsqueeze(dim=0)
-            print(x.shape)
-        elif i > 2:
-            break
-    return
+    # for i, (inputs, targets) in enumerate(test_loader):
+    #     if i == 2:
+    #         x = inputs[0]
+    #         print(x.shape)
+    #         x = x.unsqueeze(dim=0)
+    #         print(x.shape)
+    #     elif i > 2:
+    #         break
+    # return
+
+    x = cv2.imread(args.img).permute(2, 0, 1)
+    x = x.unsqueeze(dim=0)
 
     x = x.cuda()
     x_orig = x.clone()
