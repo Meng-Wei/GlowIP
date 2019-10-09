@@ -77,7 +77,7 @@ class Glow(nn.Module):
                 elif  module_name == "Flow":
                     x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)
                 elif  module_name == "Split":                
-                    if i == 0 and epsilon:
+                    if i == 2 and epsilon:
                         print(x.shape)
                         self.modify_mask()
                         x = x + self.epsilon * self.mask
