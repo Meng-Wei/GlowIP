@@ -28,7 +28,7 @@ class Squeeze(nn.Module):
             assert h % self.factor == 0 and w % self.factor == 0, "h,w not divisible by factor: h=%d, factor=%d"%(h,self.factor)
             x = x.view(n, c, h//2, 2, w//2, 2)
             x = x.permute(0, 1, 3, 5, 2, 4)
-            x = x.view(n,  c*4, h, w)
+            x = x.view(n,  c*4, h//2, w//2)
             # x = x.view(n, c*self.factor*self.factor, h//self.factor, w//self.factor)
             return x, logdet
         
