@@ -51,9 +51,9 @@ class Glow(nn.Module):
         # at the end
         self.to(device)
 
-        self.epsilon_init = torch.zeros(1, 3, 64, 64)
+        self.epsilon_init = torch.zeros(1, 12, 32, 32)
         self.epsilon = torch.nn.Parameter(self.epsilon_init)
-        self.mask_init = torch.ones(1, 3, 64, 64)
+        self.mask_init = torch.ones(1, 12, 32, 32)
         self.mask = torch.nn.Parameter(self.mask_init)
 
         self.tanh = torch.nn.Tanh()
@@ -79,13 +79,11 @@ class Glow(nn.Module):
                 elif  module_name == "Flow":
                     x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)
                 elif  module_name == "Split":                
-                    # if add and epsilon:
-                    #     print(x.shape)
-                    #     self.modify_mask()
-                    #     x = x + self.epsilon * self.mask
-                    #     add = False
+                    if add and epsilon:
+                        self.modify_mask()
+                        x = x + self.epsilon * self.mask
+                        add = False
                     x, z = self.glow_modules[i](x, reverse=False)
-                    print(x.shape, z.shape)
                     Z.append(z)
                 else:
                     raise "Unknown Layer"
@@ -124,6 +122,7 @@ class Glow(nn.Module):
         #     break
 
         mask = self.mask.data
+        mask = mask.view(1, 3, 64, 64)
         # print(mask.size())
         # # print("untrained!!!!!!!!!!!!!!!1")
         # # for i in range(mask.size(2)):
@@ -141,6 +140,7 @@ class Glow(nn.Module):
         # #     print(mask[0, 0, i, :])
         #
         mask = mask.abs()
+        mask = mask.view(1, 12, 32, 32)
         self.mask.data = mask
         # self.mask = torch.nn.Parameter(mask, requires_grad=True)
         # print(type(self.mask))
