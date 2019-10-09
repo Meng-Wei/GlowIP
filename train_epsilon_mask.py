@@ -164,7 +164,7 @@ def train_epsilon(model):
     #         break
     # return
 
-    x = cv2.imread(args.img).permute(2, 0, 1)
+    x = cv2.imread(args.img).transpose(2, 0, 1)
     x = x.unsqueeze(dim=0)
 
     x = x.cuda()
