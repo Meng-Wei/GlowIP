@@ -30,7 +30,7 @@ if True:
     parser.add_argument('-sample_freq',type=int,help='sample after every save_freq',default=50)
     parser.add_argument('-save_freq',type=int,help='save after every save_freq',default=1000)
     parser.add_argument('-device',type=str,help='whether to use',default="cuda")
-    parser.add_argument('-img', type=int, help='image index', default=0)
+    parser.add_argument('-img', type=str, help='image')
     args = parser.parse_args()
 
 
@@ -156,9 +156,13 @@ def update_lr(optimizer, itr, lr_1, lr_2):
 def train_epsilon(model):
     for i, (inputs, targets) in enumerate(test_loader):
         if i == 2:
-            x = inputs[args.img].unsqueeze(dim=0)
+            x = inputs[0]
+            print(x.shape)
+            x = x.unsqueeze(dim=0)
+            print(x.shape)
         elif i > 2:
             break
+    return
 
     x = x.cuda()
     x_orig = x.clone()
