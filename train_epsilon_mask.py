@@ -164,8 +164,7 @@ def train_epsilon(model):
     #         break
     # return
 
-    x = cv2.imread(args.img).transpose(2, 0, 1)
-    x = x.unsqueeze(dim=0)
+    x = cv2.imread(args.img).transpose(2, 0, 1).reshape(1,3,64,64)
 
     x = x.cuda()
     x_orig = x.clone()
@@ -175,7 +174,7 @@ def train_epsilon(model):
     logpx = -(logpz + logdet)
     print("undestroyed logpx", logpx)
 
-    x = destroy(x, 16, 32)
+    x = destroy(x, 16, 16)
     x = x.cuda()
     model.eval()
     nll, logdet, logpz, z_mu, z_std = glow.nll_loss(x)
