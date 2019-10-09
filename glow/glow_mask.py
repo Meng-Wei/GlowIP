@@ -81,7 +81,10 @@ class Glow(nn.Module):
                 elif  module_name == "Split":                
                     if add and epsilon:
                         self.modify_mask()
-                        x = x + self.epsilon.view(1, 12, 32, 32) * self.mask.view(1, 12, 32, 32)
+                        x = x.view(1, 3, 64, 64)
+                        x  = x + self.epsilon * self.mask
+                        # x = x + self.epsilon.view(1, 12, 32, 32) * self.mask.view(1, 12, 32, 32)
+                        x = x.view(1, 12, 32, 32)
                         add = False
                     x, z = self.glow_modules[i](x, reverse=False)
                     Z.append(z)
