@@ -60,10 +60,10 @@ class Glow(nn.Module):
 
     def forward(self, x, logdet=None, reverse=False, reverse_clone=True, epsilon=False):
 
-        if epsilon:
-            self.modify_mask()
-            x = x + self.tanh(self.epsilon) * self.mask
-            x = x.clamp(-0.5, 0.5)
+        # if epsilon:
+        #     self.modify_mask()
+        #     x = x + self.tanh(self.epsilon) * self.mask
+        #     x = x.clamp(-0.5, 0.5)
 
         if not reverse:
             n,c,h,w = x.size()
@@ -76,7 +76,11 @@ class Glow(nn.Module):
                     x, logdet = self.glow_modules[i](x, logdet=logdet, reverse=False)
                 elif  module_name == "Flow":
                     x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)
-                elif  module_name == "Split":
+                elif  module_name == "Split":                
+                    if i == 0 and epsilon:
+                        print(x.shape)
+                        self.modify_mask()
+                        x = x + self.epsilon * self.mask
                     x, z = self.glow_modules[i](x, reverse=False)
                     Z.append(z)
                 else:
