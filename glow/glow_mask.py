@@ -68,6 +68,8 @@ class Glow(nn.Module):
         if not reverse:
             n,c,h,w = x.size()
             Z = []
+            add = True
+
             if logdet is None:
                 logdet = torch.tensor(0.0,requires_grad=False,device=self.device,dtype=torch.float)
             for i in range( len(self.glow_modules) ):
@@ -77,10 +79,11 @@ class Glow(nn.Module):
                 elif  module_name == "Flow":
                     x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)
                 elif  module_name == "Split":                
-                    if i == 2 and epsilon:
+                    if add and epsilon:
                         print(x.shape)
                         self.modify_mask()
                         x = x + self.epsilon * self.mask
+                        add = False
                     x, z = self.glow_modules[i](x, reverse=False)
                     Z.append(z)
                 else:
