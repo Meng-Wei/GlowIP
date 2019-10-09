@@ -26,7 +26,10 @@ class Squeeze(nn.Module):
                 return x, logdet
             # squeezing is done in one line unlike the original code
             assert h % self.factor == 0 and w % self.factor == 0, "h,w not divisible by factor: h=%d, factor=%d"%(h,self.factor)
-            x = x.view(n, c*self.factor*self.factor, h//self.factor, w//self.factor)
+            x = x.view(n, c, h//2, 2, w//2, 2)
+            x = x.permute(0, 1, 3, 5, 2, 4)
+            x = x.view(n,  c*4, h, w)
+            # x = x.view(n, c*self.factor*self.factor, h//self.factor, w//self.factor)
             return x, logdet
         
         if reverse: 
@@ -34,7 +37,8 @@ class Squeeze(nn.Module):
                 return x
             assert c % self.factor**2 == 0, "channels not divisible by factor squared"
             # unsqueezing is also done in one line unlike the original code
-            x = x.view(n, c //(self.factor**2), h*self.factor, w* self.factor)
+            x = torch.pixel_shuffle(x, 2)
+            # x = x.view(n, c //(self.factor**2), h*self.factor, w* self.factor)
             return x
     
     
