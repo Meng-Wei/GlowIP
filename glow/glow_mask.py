@@ -59,12 +59,14 @@ class Glow(nn.Module):
 
         self.tanh = torch.nn.Tanh()
 
-    def forward(self, x, logdet=None, reverse=False, reverse_clone=True, epsilon=False, add=False):
+    def forward(self, x, logdet=None, reverse=False, reverse_clone=True, epsilon=False, add=False, add_mask=False):
 
         if epsilon and not add:
-            print("reach here")
-            self.modify_mask()
-            x = x + self.tanh(self.epsilon) * self.mask
+            if add_mask:
+                self.modify_mask()
+                x = x + self.tanh(self.epsilon) * self.mask
+            else:
+                x = x + self.tanh(self.epsilon)
             x = x.clamp(-0.5, 0.5)
 
         if not reverse:
@@ -147,9 +149,9 @@ class Glow(nn.Module):
         # self.mask = torch.nn.Parameter(mask, requires_grad=True)
         # print(type(self.mask))
 
-    def nll_loss(self, x, logdet=None, epsilon=False, add=False):
+    def nll_loss(self, x, logdet=None, epsilon=False, add=False, add_mask=False):
         n,c,h,w = x.size()
-        z, logdet, actloss = self.forward(x,logdet=logdet,reverse=False, epsilon=epsilon, add=add)
+        z, logdet, actloss = self.forward(x,logdet=logdet,reverse=False, epsilon=epsilon, add=add, add_mask=add_mask)
         if not self.init_resizer:
             self.sizes = [t.size() for t in z]
             self.init_resizer = True
