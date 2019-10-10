@@ -79,9 +79,8 @@ class Glow(nn.Module):
                 module_name = self.glow_modules[i].__class__.__name__
                 if  module_name == "Squeeze":
                     x, logdet = self.glow_modules[i](x, logdet=logdet, reverse=False)
-                elif  module_name == "Flow":
-                    x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)
-                elif  module_name == "Split":                
+                elif  module_name == "Flow":       
+                    x, logdet, actloss = self.glow_modules[i](x, logdet=logdet, reverse=False)        
                     if add and epsilon:
                         self.modify_mask()
                         x = self.squeeze(x, reverse=True)
@@ -89,6 +88,7 @@ class Glow(nn.Module):
                         # x = x + self.epsilon.view(1, 12, 32, 32) * self.mask.view(1, 12, 32, 32)
                         x, _ = self.squeeze(x)
                         add = False
+                elif  module_name == "Split": 
                     x, z = self.glow_modules[i](x, reverse=False)
                     Z.append(z)
                 else:
